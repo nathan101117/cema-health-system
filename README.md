@@ -27,7 +27,7 @@ This is a basic Health Information System developed as part of the **Software En
 
 1. **Clone the repo**
    ```bash
-   git clone https://github.com/your-username/cema-health-system.git
+   git clone https://github.com/nathan101117/cema-health-system.git
    cd cema-health-system
    ```
 
