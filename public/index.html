@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CEMA Health System</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f6f9;
+      padding: 2rem;
+    }
+    h1 {
+      color: #333;
+    }
+    section {
+      margin-bottom: 2rem;
+      background: white;
+      padding: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 0.5rem;
+      margin: 0.25rem 0;
+      width: 100%;
+      max-width: 400px;
+    }
+    ul {
+      padding-left: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🩺 CEMA Health System</h1>
+
+  <section>
+    <h2>Create Program</h2>
+    <input id="programName" placeholder="Program Name (e.g. TB)">
+    <button onclick="createProgram()">Create Program</button>
+  </section>
+
+  <section>
+    <h2>Register Client</h2>
+    <input id="clientName" placeholder="Client Name">
+    <input id="clientAge" type="number" placeholder="Age">
+    <input id="clientGender" placeholder="Gender">
+    <button onclick="registerClient()">Register Client</button>
+  </section>
+
+  <section>
+    <h2>Enroll Client to Program(s)</h2>
+    <input id="enrollClientId" placeholder="Client ID">
+    <input id="enrollProgramIds" placeholder="Program IDs (comma-separated)">
+    <button onclick="enrollClient()">Enroll Client</button>
+  </section>
+
+  <section>
+    <h2>View Client Profile</h2>
+    <input id="profileId" type="number" placeholder="Client ID">
+    <button onclick="viewProfile()">View Profile</button>
+    <div id="profileDisplay" style="margin-top: 1rem;"></div>
+  </section>
+
+  <script>
+    const base = 'http://localhost:5000';
+
+    async function createProgram() {
+      const name = document.getElementById('programName').value;
+      const res = await fetch(`${base}/programs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      const result = await res.json();
+      alert(result.name ? `Program "${result.name}" created!` : result.error);
+    }
+
+    async function registerClient() {
+      const name = document.getElementById('clientName').value;
+      const age = document.getElementById('clientAge').value;
+      const gender = document.getElementById('clientGender').value;
+      const res = await fetch(`${base}/clients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, age, gender })
+      });
+      const result = await res.json();
+      alert(result.name ? `Client "${result.name}" registered!` : result.error);
+    }
+
+    async function enrollClient() {
+      const clientId = document.getElementById('enrollClientId').value;
+      const ids = document.getElementById('enrollProgramIds').value;
+      const programIds = ids.split(',').map(id => parseInt(id.trim()));
+
+      const res = await fetch(`${base}/clients/${clientId}/enroll`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ programIds })
+      });
+
+      const result = await res.json();
+      alert(result.message || result.error);
+    }
+
+    async function viewProfile() {
+      const id = document.getElementById('profileId').value;
+      const res = await fetch(`${base}/api/clients/${id}`);
+      const client = await res.json();
+
+      if (client.error) {
+        document.getElementById('profileDisplay').innerHTML = `<p style="color:red;">${client.error}</p>`;
+        return;
+      }
+
+      const programList = client.enrolledPrograms.map(p => `<li>${p.name}</li>`).join('');
+
+      const output = `
+        <p><strong>Name:</strong> ${client.name}</p>
+        <p><strong>Age:</strong> ${client.age}</p>
+        <p><strong>Gender:</strong> ${client.gender}</p>
+        <p><strong>Enrolled Programs:</strong></p>
+        <ul>${programList || "<li>None</li>"}</ul>
+      `;
+
+      document.getElementById('profileDisplay').innerHTML = output;
+    }
+  </script>
+</body>
+</html>
